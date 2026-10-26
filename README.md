@@ -19,7 +19,7 @@ Run every command from inside this folder.
 | Member | Files | Status |
 | --- | --- | --- |
 | Member 1: Manan Gilhotra | requirements.txt, config.py, data_loader.py | Done |
-| Member 2 | features.py | To do |
+| Member 2: Harshita | features.py | Done |
 | Member 3 | backtest.py, baselines.py | To do |
 | Member 4 | xgboost_model.py | To do |
 | Member 5 | aqi.py, plots.py, main.py, app.py | To do |
@@ -31,3 +31,11 @@ python data_loader.py
 ```
 
 This creates `data/clean_data.csv`: one row per hour, a `pm25_missing` flag, gaps filled with the last known value, and wind direction one-hot encoded.
+
+## Member 2: feature engineering
+
+```bash
+python features.py
+```
+
+This reads `data/clean_data.csv` and creates `data/features.csv`: lag features (1, 2, 3, 6, 12 and 24 hours), rolling means (6 and 24 hours), calendar features (hour, day of week, month, weekend, sin/cos), weather features (temperature–dew point gap, 3-hour pressure change) and the target, PM2.5 6 hours ahead.
