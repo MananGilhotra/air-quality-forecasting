@@ -199,7 +199,7 @@ Member 5 adds `aqi.py`, `plots.py`, `main.py` and `app.py` (AQI mapping, charts,
 | Member 2: Harshita | features.py | Done |
 | Member 3: satyam-coder07 | backtest.py, baselines.py | Done |
 | Member 4: Yashi Agarwal | xgboost_model.py | Done |
-| Member 5 | aqi.py, plots.py, main.py, app.py | To do |
+| Member 5: Akhil Mishra | aqi.py, plots.py, main.py, app.py | Done |
 
 ## Member 1: data cleaning
 
@@ -249,3 +249,36 @@ XGBoost builds 300 small decision trees, each one correcting the errors of the t
 | Average | 35.76 | 55.80 | 0.652 | 40.73 | 12% |
 
 XGBoost beats both baselines in every fold. The most important features in the last fold were current PM2.5, northwest wind, season (month_cos), rain hours and time of day.
+
+## Member 5: AQI mapping, results and dashboard
+
+Run the whole project with one command:
+
+```bash
+python main.py
+```
+
+Then open the optional dashboard:
+
+```bash
+streamlit run app.py
+```
+
+aqi.py maps PM2.5 (µg/m³) to US EPA AQI categories (2024 breakpoints: Good ≤ 9.0, Moderate ≤ 35.4, Unhealthy for Sensitive Groups ≤ 55.4, Unhealthy ≤ 125.4, Very Unhealthy ≤ 225.4, Hazardous above). EPA defines these on 24-hour averages; we apply them to each hourly forecast as a simple label. plots.py draws the charts, main.py runs every step and saves the results, and app.py is a Streamlit dashboard that reads the saved results.
+
+### Final results (6-hour-ahead PM2.5, average over 4 folds)
+
+| Model | MAE (µg/m³) | RMSE (µg/m³) | R² | AQI category accuracy |
+| --- | --- | --- | --- | --- |
+| Persistence | 40.73 | 65.31 | 0.518 | 49.8% |
+| Seasonal naive | 71.84 | 104.19 | -0.223 | 31.5% |
+| XGBoost | 35.76 | 55.80 | 0.652 | 53.9% |
+
+XGBoost has the lowest error in every fold and puts the forecast in the right AQI category most often.
+
+![Average error per model](images/model_errors.png)
+
+![Forecast vs actual, last 7 days](images/forecast_vs_actual.png)
+
+![XGBoost forecast on AQI categories, last 14 days](images/aqi_forecast.png)
+
