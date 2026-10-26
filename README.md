@@ -21,7 +21,7 @@ Run every command from inside this folder.
 | Member 1: Manan Gilhotra | requirements.txt, config.py, data_loader.py | Done |
 | Member 2: Harshita | features.py | Done |
 | Member 3: satyam-coder07 | backtest.py, baselines.py | Done |
-| Member 4 | xgboost_model.py | To do |
+| Member 4: Yashi Agarwal | xgboost_model.py | Done |
 | Member 5 | aqi.py, plots.py, main.py, app.py | To do |
 
 ## Member 1: data cleaning
@@ -54,4 +54,23 @@ backtest.py splits the data by time into 4 folds. Each fold trains on everything
 | 2 (Jul–Dec 2013) | 38.46 | 59.75 | 0.440 | 63.80 | 92.57 | -0.344 |
 | 3 (Jan–Jun 2014) | 40.21 | 64.21 | 0.568 | 69.09 | 101.36 | -0.077 |
 | 4 (Jul–Dec 2014) | 37.49 | 59.06 | 0.558 | 66.30 | 97.68 | -0.209 |
+
+## Member 4: XGBoost model
+
+```bash
+python xgboost_model.py
+```
+
+XGBoost builds 300 small decision trees, each one correcting the errors of the trees before it. It uses all 31 features from features.py, trains only on hours where the future PM2.5 was really measured, and is tested on the same 4 folds as the baselines.
+
+| Fold | XGBoost MAE | XGBoost RMSE | XGBoost R² | Persistence MAE | MAE improvement |
+| --- | --- | --- | --- | --- | --- |
+| 1 (Jan–Jun 2013) | 42.96 | 70.61 | 0.598 | 46.77 | 8% |
+| 2 (Jul–Dec 2013) | 32.24 | 48.26 | 0.635 | 38.46 | 16% |
+| 3 (Jan–Jun 2014) | 36.11 | 56.36 | 0.667 | 40.21 | 10% |
+| 4 (Jul–Dec 2014) | 31.72 | 47.96 | 0.708 | 37.49 | 15% |
+| Average | 35.76 | 55.80 | 0.652 | 40.73 | 12% |
+
+XGBoost beats both baselines in every fold. The most important features in the last fold were current PM2.5, northwest wind, season (month_cos), rain hours and time of day.
+
 
