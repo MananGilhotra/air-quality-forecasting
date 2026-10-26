@@ -1,0 +1,14 @@
+# Virtual environment (each member creates their own)
+venv/
+
+# Files the scripts generate
+data/clean_data.csv
+data/features.csv
+results/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Mac system files
+.DS_Store
