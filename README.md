@@ -20,7 +20,7 @@ Run every command from inside this folder.
 | --- | --- | --- |
 | Member 1: Manan Gilhotra | requirements.txt, config.py, data_loader.py | Done |
 | Member 2: Harshita | features.py | Done |
-| Member 3 | backtest.py, baselines.py | To do |
+| Member 3: satyam-coder07 | backtest.py, baselines.py | Done |
 | Member 4 | xgboost_model.py | To do |
 | Member 5 | aqi.py, plots.py, main.py, app.py | To do |
 
@@ -39,3 +39,19 @@ python features.py
 ```
 
 This reads `data/clean_data.csv` and creates `data/features.csv`: lag features (1, 2, 3, 6, 12 and 24 hours), rolling means (6 and 24 hours), calendar features (hour, day of week, month, weekend, sin/cos), weather features (temperature–dew point gap, 3-hour pressure change) and the target, PM2.5 6 hours ahead.
+
+## Member 3: rolling backtest and baselines
+
+```bash
+python baselines.py
+```
+
+backtest.py splits the data by time into 4 folds. Each fold trains on everything before its test period and tests on the next 6 months (Jan–Jun 2013, Jul–Dec 2013, Jan–Jun 2014, Jul–Dec 2014). It also scores forecasts with MAE, RMSE and R squared, only on hours where the real PM2.5 was measured. baselines.py scores two simple forecasts every model must beat: persistence (PM2.5 in 6 hours = PM2.5 now) and seasonal naive (PM2.5 at the same hour yesterday).
+
+| Fold | Persistence MAE | Persistence RMSE | Persistence R² | Seasonal naive MAE | Seasonal naive RMSE | Seasonal naive R² |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 (Jan–Jun 2013) | 46.77 | 78.23 | 0.506 | 88.17 | 125.13 | -0.263 |
+| 2 (Jul–Dec 2013) | 38.46 | 59.75 | 0.440 | 63.80 | 92.57 | -0.344 |
+| 3 (Jan–Jun 2014) | 40.21 | 64.21 | 0.568 | 69.09 | 101.36 | -0.077 |
+| 4 (Jul–Dec 2014) | 37.49 | 59.06 | 0.558 | 66.30 | 97.68 | -0.209 |
+
