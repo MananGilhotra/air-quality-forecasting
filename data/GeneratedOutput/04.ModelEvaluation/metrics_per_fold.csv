@@ -1,0 +1,13 @@
+fold,model,MAE,RMSE,R2
+1,Persistence,46.77,78.23,0.506
+1,Seasonal naive,88.17,125.13,-0.263
+1,XGBoost,42.96,70.61,0.598
+2,Persistence,38.46,59.75,0.44
+2,Seasonal naive,63.8,92.57,-0.344
+2,XGBoost,32.24,48.26,0.635
+3,Persistence,40.21,64.21,0.568
+3,Seasonal naive,69.09,101.36,-0.077
+3,XGBoost,36.11,56.36,0.667
+4,Persistence,37.49,59.06,0.558
+4,Seasonal naive,66.3,97.68,-0.209
+4,XGBoost,31.72,47.96,0.708

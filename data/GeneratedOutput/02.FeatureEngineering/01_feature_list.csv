@@ -1,0 +1,32 @@
+feature,group
+pm25,Current PM2.5
+DEWP,Weather
+TEMP,Weather
+PRES,Weather
+Iws,Weather
+Is,Weather
+Ir,Weather
+pm25_missing,Missing flag
+wind_NE,Wind direction
+wind_NW,Wind direction
+wind_SE,Wind direction
+wind_cv,Wind direction
+pm25_lag_1,Lag
+pm25_lag_2,Lag
+pm25_lag_3,Lag
+pm25_lag_6,Lag
+pm25_lag_12,Lag
+pm25_lag_24,Lag
+pm25_roll_mean_6,Rolling mean
+pm25_roll_mean_24,Rolling mean
+hour,Calendar
+day_of_week,Calendar
+month,Calendar
+is_weekend,Calendar
+hour_sin,Calendar
+hour_cos,Calendar
+month_sin,Calendar
+month_cos,Calendar
+temp_dewp_gap,Weather
+pres_change_3h,Weather
+pm25_same_hour_yesterday,Lag

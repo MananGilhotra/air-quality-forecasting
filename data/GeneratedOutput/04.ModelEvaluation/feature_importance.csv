@@ -1,0 +1,32 @@
+feature,importance,group
+pm25,0.3031734,Current PM2.5
+wind_NW,0.10376373,Wind direction
+month_cos,0.04155522,Calendar
+Ir,0.04106832,Weather
+hour_sin,0.035533696,Calendar
+wind_SE,0.033675093,Wind direction
+pres_change_3h,0.03311599,Weather
+pm25_lag_1,0.03198926,Lag
+month,0.025470825,Calendar
+hour_cos,0.024732882,Calendar
+pm25_roll_mean_24,0.023202702,Rolling mean
+pm25_roll_mean_6,0.02160725,Rolling mean
+pm25_same_hour_yesterday,0.021524334,Lag
+hour,0.02093513,Calendar
+is_weekend,0.02054096,Calendar
+Iws,0.017419644,Weather
+DEWP,0.017180987,Weather
+PRES,0.017075744,Weather
+pm25_lag_12,0.01656781,Lag
+temp_dewp_gap,0.015791573,Weather
+day_of_week,0.014630053,Calendar
+pm25_missing,0.014344191,Missing flag
+month_sin,0.013810486,Calendar
+wind_NE,0.013725229,Wind direction
+TEMP,0.013502478,Weather
+pm25_lag_3,0.012888883,Lag
+pm25_lag_6,0.012036375,Lag
+pm25_lag_24,0.011935072,Lag
+pm25_lag_2,0.011643804,Lag
+wind_cv,0.010097998,Wind direction
+Is,0.0054608886,Weather

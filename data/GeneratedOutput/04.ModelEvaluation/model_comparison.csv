@@ -1,0 +1,4 @@
+model,MAE,RMSE,R2,MAE vs persistence
+Persistence,40.732,65.312,0.518,0.0%
+Seasonal naive,71.84,104.185,-0.223,-76.4%
+XGBoost,35.758,55.798,0.652,12.2%
