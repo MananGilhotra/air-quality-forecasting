@@ -165,6 +165,12 @@ air-quality-forecasting/
 ├── backtest.py                       # Rolling chronological folds + metrics
 ├── baselines.py                      # Persistence and seasonal naive
 ├── xgboost_model.py                  # XGBoost regression
+├── aqi.py                            # PM2.5 → US EPA AQI category
+├── plots.py                          # Result charts (errors, forecast, AQI view)
+├── main.py                           # Runs the whole pipeline with one command
+├── app.py                            # Streamlit dashboard (reads saved results)
+├── images/                           # 3 result charts shown in the Member 5 section
+├── results/                          # Created by main.py (not tracked in git)
 ├── data/
 │   ├── PRSA_data_2010.1.1-2014.12.31.csv
 │   └── GeneratedOutput/
@@ -187,8 +193,6 @@ air-quality-forecasting/
     └── test_pipeline.py              # 10 checks: cleaning, no leakage, folds, metrics, model
 ```
 
-Member 5 adds `aqi.py`, `plots.py`, `main.py` and `app.py` (AQI mapping, charts, one-command runner and Streamlit dashboard).
-
 ---
 
 ## 10. Team progress
@@ -197,7 +201,7 @@ Member 5 adds `aqi.py`, `plots.py`, `main.py` and `app.py` (AQI mapping, charts,
 | --- | --- | --- |
 | Member 1: Manan Gilhotra | requirements.txt, config.py, data_loader.py | Done |
 | Member 2: Harshita | features.py | Done |
-| Member 3: satyam-coder07 | backtest.py, baselines.py | Done |
+| Member 3: Satyam | backtest.py, baselines.py | Done |
 | Member 4: Yashi Agarwal | xgboost_model.py | Done |
 | Member 5: Akhil Mishra | aqi.py, plots.py, main.py, app.py | Done |
 
