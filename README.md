@@ -5,6 +5,9 @@
 > **Target:** PM2.5 concentration (µg/m³) **6 hours ahead**
 > **AQI standard:** US EPA PM2.5 breakpoints (2024 update)
 
+**Project report:** [PDF (5 pages)](reports/Project_Report.pdf) · [read online](reports/Project_Report.md)  
+**Presentation:** [PowerPoint (14 slides, with speaker notes)](reports/Presentation.pptx) · [PDF](reports/Presentation.pdf)
+
 ---
 
 ## 1. Project Overview & Architecture
@@ -180,6 +183,8 @@ air-quality-forecasting/
 │       └── 04.ModelEvaluation/       # Model comparison, per-fold metrics, feature importance
 ├── notebooks/                        # 6 notebooks (see above)
 ├── reports/
+│   ├── Project_Report.pdf            # 5-page project report (also Project_Report.md)
+│   ├── Presentation.pptx             # 14-slide presentation with speaker notes (also Presentation.pdf)
 │   └── figures/                      # 14 charts used in this README and the docs
 ├── docs/
 │   ├── EDA_REPORT.md
