@@ -28,3 +28,17 @@ TEST_PERIODS = [
 ]
 
 RANDOM_SEED = 42
+
+# ---------- Phase 2: deep learning (LSTM, temporal CNN, hybrid) ----------
+SEQ_LEN = 48            # every sample is a window of the last 48 hours
+VAL_FRACTION = 0.1      # the last 10% of each training period is the validation set
+BATCH_SIZE = 256
+MAX_EPOCHS = 30         # upper limit; early stopping usually ends training sooner
+PATIENCE = 4            # stop when validation has not improved for 4 epochs
+LEARNING_RATE = 0.001
+LSTM_HIDDEN = 64        # size of the LSTM memory
+TCN_CHANNELS = 32       # number of filters in each temporal CNN layer
+N_SEEDS = 3             # train each network 3 times and average the forecasts
+
+# Models averaged by the hybrid ensemble
+HYBRID_MODELS = ["XGBoost", "LSTM", "TCN"]
