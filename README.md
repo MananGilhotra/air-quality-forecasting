@@ -1,12 +1,12 @@
-# Project 19: Air Quality Forecasting via Gradient Boosting
+# Project 19: Air Quality Forecasting via Gradient Boosting and LSTM Models
 
-> **Course:** Semester 5 Applied Machine Learning (AML)
+> **Course:** Semester 5 Applied Machine Learning and Deep Learning (AML / DL)
 > **Dataset:** UCI Beijing PM2.5, 43,824 hourly records, 1 Jan 2010 to 31 Dec 2014
 > **Target:** PM2.5 concentration (µg/m³) **6 hours ahead**
 > **AQI standard:** US EPA PM2.5 breakpoints (2024 update)
 
-**Project report:** [PDF (5 pages)](reports/Project_Report.pdf) · [read online](reports/Project_Report.md)  
-**Presentation:** [PowerPoint (14 slides, with speaker notes)](reports/Presentation.pptx) · [PDF](reports/Presentation.pdf)
+**Phase 1 report (IEEE format):** [PDF](reports/IEEE_Project_Report.pdf) · **Phase 1 presentation:** [PDF](reports/Air_Quality_Forecasting_Presentation.pdf)  
+**Phase 2 write-up:** [docs/DEEP_LEARNING.md](docs/DEEP_LEARNING.md)
 
 ---
 
@@ -15,33 +15,41 @@
 This project forecasts short-horizon PM2.5 in Beijing from past pollution and weather, and compares models fairly with a **rolling chronological backtest**.
 
 - **Baselines:** persistence (PM2.5 in 6 hours = PM2.5 now) and seasonal naive (same hour yesterday).
-- **AML model:** **XGBoost** regression on 31 engineered features: lags, rolling means, calendar and weather covariates.
-- **Evaluation:** MAE, RMSE and R² on 4 expanding-window folds, plus AQI category accuracy.
-- **Next phase:** a sequence model (LSTM) to test whether longer temporal patterns beat the hand-picked lag windows.
+- **Phase 1, AML model:** **XGBoost** regression on 31 engineered features: lags, rolling means, calendar and weather covariates.
+- **Phase 2, DL models:** an **LSTM** and a **temporal CNN** trained on raw 48-hour sequences, with no hand-made lags.
+- **Hybrid:** the average of XGBoost, LSTM and temporal CNN forecasts.
+- **Evaluation:** MAE, RMSE and R² on 4 expanding-window folds, plus AQI category accuracy (exact, and within one category).
 
 ```
 Raw CSV ─► data_loader.py ─► features.py ─► backtest.py (4 time-ordered folds)
                                                  │
-                    ┌────────────────────────────┼────────────────────────────┐
-              Persistence                 Seasonal naive                  XGBoost
-                    └────────────────────────────┼────────────────────────────┘
-                                                 ▼
-                         Metrics · charts · AQI categories · dashboard
+        ┌──────────────┬─────────────────────────┼──────────────────────────┐
+   Persistence   Seasonal naive               XGBoost               sequences.py (48-hour windows)
+                                       (hand-made lag features)        ┌────────┴────────┐
+                                                 │                    LSTM         Temporal CNN
+                                                 └──────────┬──────────┴─────────────────┘
+                                                            ▼
+                                                  Hybrid (average of the three)
+                                                            ▼
+                                   Metrics · charts · AQI categories · dashboard
 ```
 
 ---
 
 ## 2. Results at a Glance
 
-| Model | MAE (µg/m³) | RMSE (µg/m³) | R² | MAE vs persistence |
-| --- | --- | --- | --- | --- |
-| Persistence | 40.73 | 65.31 | 0.518 | — |
-| Seasonal naive | 71.84 | 104.19 | -0.223 | 76% worse |
-| **XGBoost** | **35.76** | **55.80** | **0.652** | **12% better** |
+| Model | MAE (µg/m³) | RMSE (µg/m³) | R² | AQI category accuracy | AQI within one category | MAE vs persistence |
+| --- | --- | --- | --- | --- | --- | --- |
+| Persistence | 40.73 | 65.31 | 0.518 | 49.8% | 86.8% | — |
+| Seasonal naive | 71.84 | 104.19 | -0.223 | 31.5% | 65.8% | 76% worse |
+| XGBoost | 35.76 | 55.80 | 0.652 | 53.9% | 90.2% | 12% better |
+| LSTM | 34.28 | 54.38 | 0.667 | 55.1% | 90.2% | 16% better |
+| Temporal CNN (TCN) | 34.17 | 54.82 | 0.662 | 55.7% | 90.4% | 16% better |
+| **Hybrid** | **33.76** | **53.41** | **0.680** | **55.8%** | **90.6%** | **17% better** |
 
-Average over 4 folds (Jan 2013 to Dec 2014), scored only on hours where PM2.5 was really measured.
+Average over 4 folds (Jan 2013 to Dec 2014), scored only on hours where PM2.5 was really measured. The **hybrid** has the lowest error in every fold: 17% below persistence and 5.6% below XGBoost.
 
-![Model comparison](reports/figures/09_model_comparison.png)
+![All models](reports/figures/17_all_models_comparison.png)
 
 ---
 
@@ -58,10 +66,13 @@ python features.py                # build features + target
 python baselines.py               # score the two baselines
 python xgboost_model.py           # train and score XGBoost
 
-# 3. Re-run every notebook (EDA → features → training → evaluation)
+# 3. Phase 2: LSTM, temporal CNN and hybrid (about 15 to 30 minutes)
+python main_dl.py
+
+# 4. Re-run every notebook (EDA → features → training → evaluation → deep learning)
 python scripts/run_notebooks.py
 
-# 4. Run the automated tests
+# 5. Run the automated tests
 pytest tests/
 ```
 
@@ -136,7 +147,43 @@ Each fold trains on all earlier data and tests on the next 6 months. The last 6 
 
 ---
 
-## 8. Notebooks Structure
+## 8. Phase 2: Deep Learning and Hybrid
+
+Full write-up: [docs/DEEP_LEARNING.md](docs/DEEP_LEARNING.md)
+
+**The gap from Phase 1:** XGBoost only sees the lag windows we picked by hand, and they carried only about 12% of its importance. The sequence models read the **raw last 48 hours** (16 features per hour) and learn the time patterns themselves.
+
+| Step | What we do |
+| --- | --- |
+| Sequences | 48-hour windows of raw data; scaling fitted on training dates only; last 10% of each training period used for validation |
+| Target | The networks predict the **change** in PM2.5 over the next 6 hours (persistence = "no change") |
+| LSTM | 64 hidden units, reads the window hour by hour |
+| Temporal CNN | 4 causal convolution layers with dilation 1, 2, 4, 8 |
+| Training | L1 loss, Adam, early stopping on validation MAE, 3 seeds averaged |
+| Hybrid | Simple average of XGBoost, LSTM and temporal CNN |
+
+| One training example | Training with early stopping |
+| --- | --- |
+| ![Sequence window](reports/figures/15_sequence_window.png) | ![Training curves](reports/figures/16_training_curves.png) |
+| **Hybrid forecast vs actual** | **Error by month** |
+| ![Hybrid forecast](reports/figures/18_hybrid_forecast.png) | ![Error by month](reports/figures/19_error_by_month.png) |
+
+MAE in each test period:
+
+| Fold | Persistence | XGBoost | LSTM | TCN | Hybrid |
+| --- | --- | --- | --- | --- | --- |
+| 1 (Jan–Jun 2013) | 46.77 | 42.96 | 41.34 | 41.07 | **40.71** |
+| 2 (Jul–Dec 2013) | 38.46 | 32.24 | 31.28 | 31.27 | **30.73** |
+| 3 (Jan–Jun 2014) | 40.21 | 36.11 | 34.32 | 34.48 | **33.77** |
+| 4 (Jul–Dec 2014) | 37.49 | 31.72 | 30.17 | 29.86 | **29.83** |
+| Average | 40.73 | 35.76 | 34.28 | 34.17 | **33.76** |
+
+- Both sequence models beat XGBoost on average **without any hand-made lag features**.
+- The **hybrid wins in all 4 folds** and is the best model on MAE, RMSE, R² and both AQI accuracies (55.8% exact category, 90.6% within one category).
+
+---
+
+## 9. Notebooks Structure
 
 ```
 notebooks/
@@ -147,16 +194,20 @@ notebooks/
 │   └── 01_cleaning_and_features.ipynb       # Cleaning, 31 features, leakage check, backtest folds
 ├── 03.ModelTraining/
 │   └── 01_baselines_and_xgboost.ipynb       # Baselines + XGBoost on every fold, saves predictions and model
-└── 04.ModelEvaluation/
-    ├── 01_model_comparison.ipynb            # MAE / RMSE / R², forecast plots, error analysis
-    └── 02_feature_importance.ipynb          # XGBoost importance by feature and by group
+├── 04.ModelEvaluation/
+│   ├── 01_model_comparison.ipynb            # MAE / RMSE / R², forecast plots, error analysis
+│   └── 02_feature_importance.ipynb          # XGBoost importance by feature and by group
+└── 05.DeepLearning/
+    ├── 01_sequences_and_networks.ipynb      # Validation split, scaling, 48-hour windows, LSTM and TCN, one training run
+    ├── 02_dl_backtest.ipynb                 # LSTM and TCN on every fold (3 seeds each), saves forecasts
+    └── 03_hybrid_and_comparison.ipynb       # Hybrid ensemble, all six models compared, error analysis
 ```
 
 Every notebook is saved with its outputs, so the charts and tables show directly on GitHub.
 
 ---
 
-## 9. Repository Layout
+## 10. Repository Layout
 
 ```text
 air-quality-forecasting/
@@ -172,35 +223,48 @@ air-quality-forecasting/
 ├── plots.py                          # Result charts (errors, forecast, AQI view)
 ├── main.py                           # Runs the whole pipeline with one command
 ├── app.py                            # Streamlit dashboard (reads saved results)
+├── dl_data.py                        # Phase 2: validation split + scaling fitted on training dates
+├── sequences.py                      # Phase 2: 48-hour windows and the change target
+├── lstm_model.py                     # Phase 2: LSTM network
+├── tcn_model.py                      # Phase 2: temporal CNN network
+├── dl_training.py                    # Phase 2: training loop, early stopping, DL backtest
+├── hybrid.py                         # Phase 2: average of XGBoost, LSTM and TCN
+├── plots_dl.py                       # Phase 2: charts for all six models
+├── main_dl.py                        # Phase 2: runs everything with one command
 ├── images/                           # 3 result charts shown in the Member 5 section
-├── results/                          # Created by main.py (not tracked in git)
+├── results/                          # Created by main.py and main_dl.py (not tracked in git)
 ├── data/
 │   ├── PRSA_data_2010.1.1-2014.12.31.csv
 │   └── GeneratedOutput/
 │       ├── 01.EDA/                   # Summary, missing values, seasonality, correlations, autocorrelation
 │       ├── 02.FeatureEngineering/    # Feature list, backtest folds
 │       ├── 03.ModelTraining/         # Predictions, training log, saved XGBoost model
-│       └── 04.ModelEvaluation/       # Model comparison, per-fold metrics, feature importance
-├── notebooks/                        # 6 notebooks (see above)
+│       ├── 04.ModelEvaluation/       # Model comparison, per-fold metrics, feature importance
+│       └── 05.DeepLearning/          # LSTM/TCN forecasts, training history, six-model comparison
+├── notebooks/                        # 9 notebooks (see above)
 ├── reports/
-│   ├── Project_Report.pdf            # 5-page project report (also Project_Report.md)
-│   ├── Presentation.pptx             # 14-slide presentation with speaker notes (also Presentation.pdf)
-│   └── figures/                      # 14 charts used in this README and the docs
+│   ├── IEEE_Project_Report.pdf       # Phase 1 report in IEEE format
+│   ├── Air_Quality_Forecasting_Presentation.pdf   # Phase 1 presentation
+│   └── figures/                      # 19 charts used in this README and the docs
 ├── docs/
 │   ├── EDA_REPORT.md
 │   ├── FEATURE_SPECIFICATION.md
+│   ├── DEEP_LEARNING.md              # Phase 2 write-up
 │   └── environment_setup.md
 ├── scripts/
 │   ├── setup_environment.sh          # Create venv + install packages
 │   └── run_notebooks.py              # Run every notebook in order
 └── tests/
     ├── conftest.py
-    └── test_pipeline.py              # 10 checks: cleaning, no leakage, folds, metrics, model
+    ├── test_pipeline.py              # 10 checks: cleaning, no leakage, folds, metrics, model
+    └── test_deep_learning.py         # 11 checks: validation split, scaling, windows, networks, hybrid
 ```
 
 ---
 
-## 10. Team progress
+## 11. Team progress
+
+**Phase 1 (AML)**
 
 | Member | Files | Status |
 | --- | --- | --- |
@@ -209,6 +273,16 @@ air-quality-forecasting/
 | Member 3: Satyam | backtest.py, baselines.py | Done |
 | Member 4: Yashi Agarwal | xgboost_model.py | Done |
 | Member 5: Akhil Mishra | aqi.py, plots.py, main.py, app.py | Done |
+
+**Phase 2 (Deep Learning)**
+
+| Member | Role | Files | Status |
+| --- | --- | --- | --- |
+| Manan Gilhotra | DL setup, validation split and scaling; notebooks, tests and docs | requirements.txt, config.py, dl_data.py, notebooks/05.DeepLearning, tests/test_deep_learning.py, docs/DEEP_LEARNING.md | Done |
+| Harshita | Sequence features: 48-hour windows and the change target | sequences.py | Done |
+| Yashi Agarwal | The networks: LSTM and temporal CNN | lstm_model.py, tcn_model.py | Done |
+| Satyam | Training loop, early stopping and DL backtest | dl_training.py | Done |
+| Akhil Mishra | Hybrid ensemble, Phase 2 runner, charts and dashboard | hybrid.py, plots_dl.py, main_dl.py, app.py | Done |
 
 ## Member 1: data cleaning
 

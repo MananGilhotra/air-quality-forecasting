@@ -1,0 +1,7 @@
+model,MAE,RMSE,R2,AQI category accuracy,AQI within one category,MAE vs persistence,MAE vs XGBoost
+Persistence,40.732,65.312,0.518,0.498,0.868,0.0%,-13.9%
+Seasonal naive,71.84,104.185,-0.223,0.315,0.658,-76.4%,-100.9%
+XGBoost,35.758,55.798,0.652,0.539,0.902,12.2%,0.0%
+LSTM,34.278,54.375,0.667,0.551,0.902,15.8%,4.1%
+TCN,34.17,54.818,0.662,0.557,0.904,16.1%,4.4%
+Hybrid,33.76,53.41,0.68,0.558,0.906,17.1%,5.6%

@@ -1,0 +1,4 @@
+array,samples,hours per sample,features per hour
+X_fit,33422,48,16
+X_val,3902,48,16
+X_test,4410,48,16

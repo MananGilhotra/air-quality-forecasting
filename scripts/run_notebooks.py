@@ -1,6 +1,7 @@
 # run_notebooks.py
 # Runs every project notebook in order and saves the outputs (tables and charts) inside them.
 # Usage (from the project folder):  python scripts/run_notebooks.py
+# The deep learning backtest notebook trains the networks, so a full run takes 15 to 30 minutes.
 
 import os
 import sys
@@ -14,6 +15,9 @@ NOTEBOOKS = [
     "notebooks/03.ModelTraining/01_baselines_and_xgboost.ipynb",
     "notebooks/04.ModelEvaluation/01_model_comparison.ipynb",
     "notebooks/04.ModelEvaluation/02_feature_importance.ipynb",
+    "notebooks/05.DeepLearning/01_sequences_and_networks.ipynb",
+    "notebooks/05.DeepLearning/02_dl_backtest.ipynb",
+    "notebooks/05.DeepLearning/03_hybrid_and_comparison.ipynb",
 ]
 
 # Run only the notebooks named on the command line, or all of them
@@ -22,7 +26,7 @@ selected = sys.argv[1:] or NOTEBOOKS
 for path in selected:
     print("Running", path)
     notebook = nbformat.read(path, as_version=4)
-    client = NotebookClient(notebook, timeout=600, kernel_name="python3",
+    client = NotebookClient(notebook, timeout=3600, kernel_name="python3",
                             resources={"metadata": {"path": os.path.dirname(path)}})
     client.execute()
     nbformat.write(notebook, path)
