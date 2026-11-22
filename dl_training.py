@@ -24,11 +24,12 @@ def predict(model, X, current_pm25, change_std):
     return to_pm25(output, current_pm25, change_std)
 
 
-def train_one_model(model, data):
+def train_one_model(model, data, loss_fn=None):
     """Train with early stopping. Returns the validation MAE after every epoch."""
     X_fit = torch.tensor(data["X_fit"])
     y_fit = torch.tensor(data["y_fit"])
-    loss_fn = nn.L1Loss()                  # mean absolute error, the metric we report
+    if loss_fn is None:
+        loss_fn = nn.L1Loss()              # mean absolute error, the metric we report
     optimizer = torch.optim.Adam(model.parameters(), lr=config.LEARNING_RATE)
 
     best_mae = float("inf")

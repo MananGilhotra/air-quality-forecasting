@@ -1,9 +1,9 @@
 # Phase 2: Deep Learning and the Hybrid Ensemble
 
-**Code:** `dl_data.py`, `sequences.py`, `lstm_model.py`, `tcn_model.py`, `dl_training.py`, `hybrid.py`, `main_dl.py`, `plots_dl.py`
-**Notebooks:** `notebooks/05.DeepLearning/` (3 notebooks)
+**Code:** `dl_data.py`, `sequences.py`, `lstm_model.py`, `tcn_model.py`, `dl_training.py`, `hybrid.py`, `main_dl.py`, `plots_dl.py`, `dl_experiments.py`, `dl_experiment_models.py`
+**Notebooks:** `notebooks/05.DeepLearning/` (4 notebooks)
 **Tables:** `data/GeneratedOutput/05.DeepLearning/`
-**Figures:** `reports/figures/15_*.png` to `19_*.png`
+**Figures:** `reports/figures/15_*.png` to `22_*.png`
 
 ---
 
@@ -88,17 +88,72 @@ MAE in each test period:
 
 ![Error by month](../reports/figures/19_error_by_month.png)
 
-## 7. Limitations
+## 7. What we tried to improve accuracy
+
+Notebook: `notebooks/05.DeepLearning/04_improvement_experiments.ipynb`. Network experiments: `dl_experiments.py` (networks in `dl_experiment_models.py`). Every experiment uses the same 4 folds and the same measured hours.
+
+**1. The improvement journey.** Each step changes one thing:
+
+| Step | MAE | RMSE | R² |
+| --- | --- | --- | --- |
+| 1. LSTM predicts the PM2.5 level (MSE loss) | 36.74 | 56.19 | 0.645 |
+| 2. Predict the 6-hour CHANGE instead | 36.11 | 55.62 | 0.652 |
+| 3. L1 loss (the metric we report) | 34.99 | 55.91 | 0.648 |
+| 4. Average of 3 training runs (seeds) | 34.28 | 54.38 | 0.667 |
+| 5. Hybrid: XGBoost + LSTM + TCN | 33.76 | 53.41 | 0.680 |
+
+![Improvement journey](../reports/figures/20_improvement_journey.png)
+
+**2. Seven network designs** with the same data and training set-up. They all land within 0.98 µg/m³ of each other, so a more complex network does not help; we keep the LSTM and the TCN.
+
+| Network (one training run each) | MAE | RMSE | R² |
+| --- | --- | --- | --- |
+| TCN | 34.47 | 54.99 | 0.660 |
+| GRU | 34.55 | 54.82 | 0.661 |
+| Attention LSTM | 34.59 | 54.85 | 0.663 |
+| LSTM | 34.99 | 55.91 | 0.648 |
+| Bi-LSTM | 35.08 | 55.84 | 0.649 |
+| CNN-LSTM | 35.16 | 55.78 | 0.651 |
+| Transformer | 35.45 | 55.80 | 0.649 |
+
+![Network designs](../reports/figures/21_network_designs.png)
+
+**3. Other ideas.** ARIMA is about as good as persistence. Training XGBoost on the change improves XGBoost, but the hybrid only a little (its errors become more like the networks' errors), so the Phase 1 XGBoost stays in the hybrid. Learned stacking weights do not beat the equal-weight average. The perfect-weather run uses the actual weather 6 hours later and is **not a valid forecast**: it only shows how much a weather forecast could add.
+
+| Idea | MAE | RMSE | R² |
+| --- | --- | --- | --- |
+| ARIMA(3,1,0) | 40.65 | 65.16 | 0.520 |
+| ARIMA(12,1,0) | 40.89 | 63.96 | 0.538 |
+| ARIMA(24,1,0) | 41.20 | 63.32 | 0.548 |
+| XGBoost (change, L1) | 34.41 | 54.61 | 0.665 |
+| Hybrid with XGBoost (change, L1) | 33.60 | 53.61 | 0.677 |
+| Stacked hybrid | 33.94 | 53.55 | 0.678 |
+| XGBoost (weather up to now) | 35.76 | 55.80 | 0.652 |
+| XGBoost + perfect weather forecast (what-if only) | 29.72 | 46.34 | 0.760 |
+
+**4. Other honest views of accuracy (hybrid, 6 hours ahead).** AQI category exactly right: 55.8%. Right category or the one next to it: 90.6%. Correct yes/no alert for PM2.5 above 35.4: 85.5% (persistence 82.1%). Accuracy also depends strongly on the horizon:
+
+| Hours ahead | Persistence R² | XGBoost R² | XGBoost AQI within one |
+| --- | --- | --- | --- |
+| 1 | 0.940 | 0.940 | 99.0% |
+| 2 | 0.857 | 0.874 | 97.3% |
+| 3 | 0.771 | 0.809 | 95.4% |
+| 6 | 0.518 | 0.652 | 90.2% |
+
+![Accuracy by horizon](../reports/figures/22_accuracy_by_horizon.png)
+
+## 8. Limitations
 
 - The gain over XGBoost is real but moderate: PM2.5 six hours ahead is limited by sudden episodes that have no early sign in the last 48 hours of one station.
 - The networks use observed weather only. Weather forecasts for the next 6 hours and data from nearby stations would likely help more than a larger network.
 - Hyperparameters (window length, network size, learning rate) were chosen with the validation periods, not with an exhaustive search.
 - Results can differ in the first or second decimal on another computer, because of floating-point differences in training.
 
-## 8. How to run
+## 9. How to run
 
 ```bash
 python main_dl.py        # Phase 1 models + LSTM + TCN + hybrid, about 15 to 30 minutes
 streamlit run app.py     # dashboard with all six models
-pytest tests/            # 22 automatic checks
+python dl_experiments.py # improvement experiments, about 30 to 60 minutes
+pytest tests/            # 23 automatic checks
 ```

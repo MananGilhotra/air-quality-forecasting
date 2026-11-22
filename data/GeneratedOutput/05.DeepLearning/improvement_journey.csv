@@ -1,0 +1,6 @@
+,MAE,RMSE,R2,MAE gain vs step 1
+1. LSTM predicts the PM2.5 level (MSE loss),36.743,56.19,0.645,0.0%
+2. Predict the 6-hour CHANGE instead,36.108,55.62,0.652,1.7%
+3. L1 loss (the metric we report),34.995,55.915,0.648,4.8%
+4. Average of 3 training runs (seeds),34.278,54.375,0.667,6.7%
+5. Hybrid: XGBoost + LSTM + TCN,33.76,53.41,0.68,8.1%

@@ -1,0 +1,9 @@
+idea,MAE,RMSE,R2
+"ARIMA(3,1,0)",40.652,65.155,0.52
+"ARIMA(12,1,0)",40.888,63.957,0.538
+"ARIMA(24,1,0)",41.202,63.322,0.548
+"XGBoost (change, L1)",34.408,54.608,0.665
+"Hybrid with XGBoost (change, L1)",33.605,53.612,0.677
+Stacked hybrid,33.942,53.552,0.678
+XGBoost (weather up to now),35.762,55.805,0.652
+XGBoost + perfect weather forecast (what-if only),29.718,46.345,0.76

@@ -128,3 +128,11 @@ def test_within_one_category_accuracy():
     actual = [40, 40, 40, 40]
     predicted = [45, 30, 60, 130]   # same, one below, one above, three above
     assert within_one_category_accuracy(actual, predicted) == 0.75
+
+
+def test_experiment_networks_give_one_forecast_per_window():
+    from dl_experiment_models import (GRUForecaster, BiLSTMForecaster, CNNLSTMForecaster,
+                                      AttentionLSTMForecaster, TransformerForecaster)
+    windows = torch.randn(4, config.SEQ_LEN, 16)
+    for network in [GRUForecaster, BiLSTMForecaster, CNNLSTMForecaster, AttentionLSTMForecaster, TransformerForecaster]:
+        assert network(16)(windows).shape == (4,)

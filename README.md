@@ -5,7 +5,8 @@
 > **Target:** PM2.5 concentration (µg/m³) **6 hours ahead**
 > **AQI standard:** US EPA PM2.5 breakpoints (2024 update)
 
-**Phase 1 report (IEEE format):** [PDF](reports/IEEE_Project_Report.pdf) · **Phase 1 presentation:** [PDF](reports/Air_Quality_Forecasting_Presentation.pdf)  
+**Project report (IEEE format, Phase 1 + Phase 2):** [PDF](reports/IEEE_Project_Report.pdf)  
+**Phase 2 presentation:** [PowerPoint, with speaker notes](reports/Phase2_Presentation.pptx) · [PDF](reports/Phase2_Presentation.pdf) · **Phase 1 presentation:** [PDF](reports/Air_Quality_Forecasting_Presentation.pdf)  
 **Phase 2 write-up:** [docs/DEEP_LEARNING.md](docs/DEEP_LEARNING.md)
 
 ---
@@ -181,6 +182,60 @@ MAE in each test period:
 - Both sequence models beat XGBoost on average **without any hand-made lag features**.
 - The **hybrid wins in all 4 folds** and is the best model on MAE, RMSE, R² and both AQI accuracies (55.8% exact category, 90.6% within one category).
 
+### What we tried to improve accuracy
+
+Notebook: `notebooks/05.DeepLearning/04_improvement_experiments.ipynb`. Network experiments: `dl_experiments.py` (networks in `dl_experiment_models.py`). Every experiment uses the same 4 folds and the same measured hours.
+
+**1. The improvement journey.** Each step changes one thing:
+
+| Step | MAE | RMSE | R² |
+| --- | --- | --- | --- |
+| 1. LSTM predicts the PM2.5 level (MSE loss) | 36.74 | 56.19 | 0.645 |
+| 2. Predict the 6-hour CHANGE instead | 36.11 | 55.62 | 0.652 |
+| 3. L1 loss (the metric we report) | 34.99 | 55.91 | 0.648 |
+| 4. Average of 3 training runs (seeds) | 34.28 | 54.38 | 0.667 |
+| 5. Hybrid: XGBoost + LSTM + TCN | 33.76 | 53.41 | 0.680 |
+
+![Improvement journey](reports/figures/20_improvement_journey.png)
+
+**2. Seven network designs** with the same data and training set-up. They all land within 0.98 µg/m³ of each other, so a more complex network does not help; we keep the LSTM and the TCN.
+
+| Network (one training run each) | MAE | RMSE | R² |
+| --- | --- | --- | --- |
+| TCN | 34.47 | 54.99 | 0.660 |
+| GRU | 34.55 | 54.82 | 0.661 |
+| Attention LSTM | 34.59 | 54.85 | 0.663 |
+| LSTM | 34.99 | 55.91 | 0.648 |
+| Bi-LSTM | 35.08 | 55.84 | 0.649 |
+| CNN-LSTM | 35.16 | 55.78 | 0.651 |
+| Transformer | 35.45 | 55.80 | 0.649 |
+
+![Network designs](reports/figures/21_network_designs.png)
+
+**3. Other ideas.** ARIMA is about as good as persistence. Training XGBoost on the change improves XGBoost, but the hybrid only a little (its errors become more like the networks' errors), so the Phase 1 XGBoost stays in the hybrid. Learned stacking weights do not beat the equal-weight average. The perfect-weather run uses the actual weather 6 hours later and is **not a valid forecast**: it only shows how much a weather forecast could add.
+
+| Idea | MAE | RMSE | R² |
+| --- | --- | --- | --- |
+| ARIMA(3,1,0) | 40.65 | 65.16 | 0.520 |
+| ARIMA(12,1,0) | 40.89 | 63.96 | 0.538 |
+| ARIMA(24,1,0) | 41.20 | 63.32 | 0.548 |
+| XGBoost (change, L1) | 34.41 | 54.61 | 0.665 |
+| Hybrid with XGBoost (change, L1) | 33.60 | 53.61 | 0.677 |
+| Stacked hybrid | 33.94 | 53.55 | 0.678 |
+| XGBoost (weather up to now) | 35.76 | 55.80 | 0.652 |
+| XGBoost + perfect weather forecast (what-if only) | 29.72 | 46.34 | 0.760 |
+
+**4. Other honest views of accuracy (hybrid, 6 hours ahead).** AQI category exactly right: 55.8%. Right category or the one next to it: 90.6%. Correct yes/no alert for PM2.5 above 35.4: 85.5% (persistence 82.1%). Accuracy also depends strongly on the horizon:
+
+| Hours ahead | Persistence R² | XGBoost R² | XGBoost AQI within one |
+| --- | --- | --- | --- |
+| 1 | 0.940 | 0.940 | 99.0% |
+| 2 | 0.857 | 0.874 | 97.3% |
+| 3 | 0.771 | 0.809 | 95.4% |
+| 6 | 0.518 | 0.652 | 90.2% |
+
+![Accuracy by horizon](reports/figures/22_accuracy_by_horizon.png)
+
 ---
 
 ## 9. Notebooks Structure
@@ -200,7 +255,8 @@ notebooks/
 └── 05.DeepLearning/
     ├── 01_sequences_and_networks.ipynb      # Validation split, scaling, 48-hour windows, LSTM and TCN, one training run
     ├── 02_dl_backtest.ipynb                 # LSTM and TCN on every fold (3 seeds each), saves forecasts
-    └── 03_hybrid_and_comparison.ipynb       # Hybrid ensemble, all six models compared, error analysis
+    ├── 03_hybrid_and_comparison.ipynb       # Hybrid ensemble, all six models compared, error analysis
+    └── 04_improvement_experiments.ipynb     # What we tried: journey, 7 network designs, ARIMA, stacking, what-if
 ```
 
 Every notebook is saved with its outputs, so the charts and tables show directly on GitHub.
@@ -231,6 +287,8 @@ air-quality-forecasting/
 ├── hybrid.py                         # Phase 2: average of XGBoost, LSTM and TCN
 ├── plots_dl.py                       # Phase 2: charts for all six models
 ├── main_dl.py                        # Phase 2: runs everything with one command
+├── dl_experiments.py                 # Phase 2: improvement experiments (one training run each)
+├── dl_experiment_models.py           # Phase 2: GRU, Bi-LSTM, CNN-LSTM, Attention LSTM, Transformer
 ├── images/                           # 3 result charts shown in the Member 5 section
 ├── results/                          # Created by main.py and main_dl.py (not tracked in git)
 ├── data/
@@ -241,11 +299,12 @@ air-quality-forecasting/
 │       ├── 03.ModelTraining/         # Predictions, training log, saved XGBoost model
 │       ├── 04.ModelEvaluation/       # Model comparison, per-fold metrics, feature importance
 │       └── 05.DeepLearning/          # LSTM/TCN forecasts, training history, six-model comparison
-├── notebooks/                        # 9 notebooks (see above)
+├── notebooks/                        # 10 notebooks (see above)
 ├── reports/
-│   ├── IEEE_Project_Report.pdf       # Phase 1 report in IEEE format
+│   ├── IEEE_Project_Report.pdf       # Project report in IEEE format (Phase 1 + Phase 2)
+│   ├── Phase2_Presentation.pptx      # Phase 2 presentation with speaker notes (also .pdf)
 │   ├── Air_Quality_Forecasting_Presentation.pdf   # Phase 1 presentation
-│   └── figures/                      # 19 charts used in this README and the docs
+│   └── figures/                      # 22 charts used in this README and the docs
 ├── docs/
 │   ├── EDA_REPORT.md
 │   ├── FEATURE_SPECIFICATION.md
@@ -257,7 +316,7 @@ air-quality-forecasting/
 └── tests/
     ├── conftest.py
     ├── test_pipeline.py              # 10 checks: cleaning, no leakage, folds, metrics, model
-    └── test_deep_learning.py         # 11 checks: validation split, scaling, windows, networks, hybrid
+    └── test_deep_learning.py         # 13 checks: validation split, scaling, windows, networks, hybrid, AQI
 ```
 
 ---
@@ -278,11 +337,11 @@ air-quality-forecasting/
 
 | Member | Role | Files | Status |
 | --- | --- | --- | --- |
-| Manan Gilhotra | DL setup, validation split and scaling; notebooks, tests and docs | requirements.txt, config.py, dl_data.py, notebooks/05.DeepLearning, tests/test_deep_learning.py, docs/DEEP_LEARNING.md | Done |
+| Manan Gilhotra | DL setup, validation split and scaling; improvement experiments, notebooks, tests and docs | requirements.txt, config.py, dl_data.py, dl_experiments.py, dl_experiment_models.py, notebooks/05.DeepLearning, tests/test_deep_learning.py, docs/DEEP_LEARNING.md | Done |
 | Harshita | Sequence features: 48-hour windows and the change target | sequences.py | Done |
 | Yashi Agarwal | The networks: LSTM and temporal CNN | lstm_model.py, tcn_model.py | Done |
 | Satyam | Training loop, early stopping and DL backtest | dl_training.py | Done |
-| Akhil Mishra | Hybrid ensemble, Phase 2 runner, charts and dashboard | hybrid.py, plots_dl.py, main_dl.py, app.py | Done |
+| Akhil Mishra | Hybrid ensemble, Phase 2 runner, charts, AQI accuracy and dashboard | aqi.py, hybrid.py, plots_dl.py, main_dl.py, app.py | Done |
 
 ## Member 1: data cleaning
 

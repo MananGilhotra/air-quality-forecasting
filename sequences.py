@@ -67,7 +67,7 @@ def prepare_fold(train_df, test_df):
 
     return {
         "n_features": len(columns),
-        "X_fit": X_fit, "y_fit": (fit_change / change_std).astype(np.float32),
+        "X_fit": X_fit, "y_fit": (fit_change / change_std).astype(np.float32), "fit_current": fit_current,
         "X_val": X_val, "val_current": val_current, "val_actual": val_future,
         "X_test": X_test, "test_current": test_current,
         "change_std": change_std,

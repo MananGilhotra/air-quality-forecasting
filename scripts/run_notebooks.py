@@ -18,6 +18,7 @@ NOTEBOOKS = [
     "notebooks/05.DeepLearning/01_sequences_and_networks.ipynb",
     "notebooks/05.DeepLearning/02_dl_backtest.ipynb",
     "notebooks/05.DeepLearning/03_hybrid_and_comparison.ipynb",
+    "notebooks/05.DeepLearning/04_improvement_experiments.ipynb",
 ]
 
 # Run only the notebooks named on the command line, or all of them

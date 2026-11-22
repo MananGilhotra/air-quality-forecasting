@@ -1,0 +1,5 @@
+hours ahead,Persistence R2,XGBoost R2,XGBoost MAE,XGBoost AQI within one
+1,0.94,0.94,12.408,0.99
+2,0.857,0.874,19.342,0.973
+3,0.771,0.809,24.665,0.954
+6,0.518,0.652,35.758,0.902
